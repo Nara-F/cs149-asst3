@@ -75,9 +75,9 @@ void saxpyCuda(int N, float alpha, float* xarray, float* yarray,
     //
     // CS149 TODO: copy input arrays to the GPU using cudaMemcpy
     //
-    cudaMalloc(device_x, sizeof(float) * N);
-    cudaMalloc(device_y, sizeof(float) * N);
-    cudaMalloc(device_result, sizeof(float) * N);
+    cudaMalloc(&device_x, sizeof(float) * N);
+    cudaMalloc(&device_y, sizeof(float) * N);
+    cudaMalloc(&device_result, sizeof(float) * N);
 
     // run CUDA kernel. (notice the <<< >>> brackets indicating a CUDA
     // kernel launch) Execution on the GPU occurs here.
