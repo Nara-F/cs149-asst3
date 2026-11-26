@@ -39,6 +39,12 @@ static inline int nextPow2(int n) {
 // "in-place" scan, since the timing harness makes a copy of input and
 // places it in result
 namespace {
+__global__ void firstScan(int N, int* input, int* result) {
+    int index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index == 0 || index >= N) return;
+    result[index] = input[index - 1];
+}
+
 __global__ void binaryScan(int gap, int N, int* input, int* result) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= N) return;
@@ -61,7 +67,14 @@ void exclusive_scan(int* input, int N, int* result) {
     constexpr int threads = THREADS_PER_BLOCK;
     int blocks = (N + threads - 1) / threads;
     double totalTime = 0;
-    for (int gap = 1; gap < N; gap *= 2) {
+
+    double startTime = CycleTimer::currentSeconds();
+    firstScan<<<blocks, threads>>>(gap, N, input, result);
+    cudaDeviceSynchronize();
+    double endTime = CycleTimer::currentSeconds();
+    totalTime += endTime - startTime;
+
+    for (int gap = 2; gap < N; gap *= 2) {
         double startTime = CycleTimer::currentSeconds();
         binaryScan<<<blocks, threads>>>(gap, N, input, result);
         cudaDeviceSynchronize();
