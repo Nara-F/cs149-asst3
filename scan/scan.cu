@@ -49,8 +49,11 @@ __global__ void binaryScan(int gap, int N, int* input, int* result) {
     int index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= N) return;
     int i = (index + 1) / gap;
-    if (i % 2) {
-        result[index] += input[index - gap];
+    int d = i % gap;
+    if (d) {
+        result[index] += input[index - d];
+    } else if (index >= gap) {
+        result[index] = input[index - gap];
     }
 }
 }  // namespace
@@ -69,7 +72,7 @@ void exclusive_scan(int* input, int N, int* result) {
     double totalTime = 0;
 
     double startTime = CycleTimer::currentSeconds();
-    firstScan<<<blocks, threads>>>(gap, N, input, result);
+    firstScan<<<blocks, threads>>>(N, input, result);
     cudaDeviceSynchronize();
     double endTime = CycleTimer::currentSeconds();
     totalTime += endTime - startTime;
